@@ -105,10 +105,20 @@ impl AutoSshApp {
                 match event {
                     ssh::SshEvent::Connected => {
                         *self.connected.lock().unwrap() = true;
+                        self.auto_connect_attempted = false;
                         self.remote_status = monitor::DeviceState::Connected;
                         self.last_connection = Some(SystemTime::now());
                         self.last_connection_text = String::from("Just now");
                         log::info!("SSH connection established");
+                    }
+                    ssh::SshEvent::Connecting { attempt, delay_secs } => {
+                        self.auto_connect_attempted = true;
+                        self.remote_status = monitor::DeviceState::Connected;
+                        log::info!(
+                            "SSH connecting (attempt {}, delay {}s)",
+                            attempt,
+                            delay_secs
+                        );
                     }
                     ssh::SshEvent::Disconnected(reason) => {
                         *self.connected.lock().unwrap() = false;
@@ -119,14 +129,7 @@ impl AutoSshApp {
                         }
                         log::info!("SSH disconnected: {}", reason);
                     }
-                    ssh::SshEvent::Error(e) => {
-                        *self.connected.lock().unwrap() = false;
-                        self.auto_connect_attempted = false;
-                        if self.remote_status == monitor::DeviceState::Connected {
-                            self.remote_status = monitor::DeviceState::SshReady;
-                        }
-                        log::error!("SSH error: {}", e);
-                    }
+
                 }
             }
         }
@@ -137,12 +140,12 @@ impl AutoSshApp {
         self.remote_status = monitor::DeviceState::Connected;
 
         if let Some(ref handle) = self.ssh_handle {
-            handle.connect(
-                self.cfg.remote_host.clone(),
-                self.cfg.port,
-                self.cfg.username.clone(),
-                self.cfg.ssh_key_path.clone(),
-            );
+            handle.connect(ssh::ConnectionParams {
+                host: self.cfg.remote_host.clone(),
+                port: self.cfg.port,
+                username: self.cfg.username.clone(),
+                key_path: self.cfg.ssh_key_path.clone(),
+            });
         }
         log::info!("Auto-connecting to {}:{}", self.cfg.remote_host, self.cfg.port);
     }
@@ -201,12 +204,12 @@ impl AutoSshApp {
                     .clicked()
                 {
                     if let Some(ref handle) = self.ssh_handle {
-                        handle.connect(
-                            self.cfg.remote_host.clone(),
-                            self.cfg.port,
-                            self.cfg.username.clone(),
-                            self.cfg.ssh_key_path.clone(),
-                        );
+                        handle.connect(ssh::ConnectionParams {
+                            host: self.cfg.remote_host.clone(),
+                            port: self.cfg.port,
+                            username: self.cfg.username.clone(),
+                            key_path: self.cfg.ssh_key_path.clone(),
+                        });
                     }
                 }
 
