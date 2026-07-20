@@ -56,6 +56,16 @@ It feels like **Syncthing** or **AirDrop**: devices discover each other, connect
 
 ### Linux
 
+#### From .deb file
+Go to the latest release in the release notes and download the .deb file and install it to your computer.
+
+#### From .appimage file
+Go to the latest release in the release notes and download the .appimage file and run the following commands
+```bash
+chmod +x auto-ssh-x86_64.AppImage
+./auto-ssh-x86_64.AppImage 
+```
+
 #### From source (recommended)
 
 ```bash
