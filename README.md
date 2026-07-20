@@ -1,5 +1,6 @@
 <div align="center">
-  <h1>🔌 AutoSSH</h1>
+  <img src="/Logo.png" width="128" height="128" alt="AutoSSH Logo">
+  <h1>AutoSSH</h1>
   <p><strong>Automatic SSH connections that just work.</strong></p>
   <p>AutoSSH is a lightweight desktop utility that automatically connects trusted devices through SSH when both are powered on and reachable — no terminals, no manual commands.</p>
 </div>
@@ -59,6 +60,7 @@ It feels like **Syncthing** or **AirDrop**: devices discover each other, connect
 #### From .deb file
 Go to the latest release in the release notes and download the .deb file and install it to your computer.
 
+
 #### From .appimage file
 Go to the latest release in the release notes and download the .appimage file and run the following commands
 ```bash
@@ -66,7 +68,8 @@ chmod +x auto-ssh-x86_64.AppImage
 ./auto-ssh-x86_64.AppImage 
 ```
 
-#### From source (recommended)
+
+#### From source
 
 ```bash
 git clone https://github.com/yourusername/autossh.git
