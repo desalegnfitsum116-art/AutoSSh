@@ -1,6 +1,7 @@
 mod config;
 mod monitor;
 mod ssh;
+mod tray;
 
 use eframe::egui;
 use std::sync::{Arc, Mutex};
@@ -19,6 +20,7 @@ struct AutoSshApp {
 
     monitor_handle: Option<monitor::MonitorHandle>,
     ssh_handle: Option<ssh::SshHandle>,
+    tray_handle: Option<tray::TrayHandle>,
     connected: Arc<Mutex<bool>>,
     auto_connect_attempted: bool,
 }
@@ -38,6 +40,7 @@ impl AutoSshApp {
         ));
 
         let ssh_handle = Some(ssh::start_ssh_manager());
+        let tray_handle = tray::start_tray();
 
         Self {
             local_status: monitor::DeviceState::Online,
@@ -50,6 +53,7 @@ impl AutoSshApp {
             save_result: None,
             monitor_handle,
             ssh_handle,
+            tray_handle,
             connected,
             auto_connect_attempted: false,
         }
@@ -62,6 +66,7 @@ impl eframe::App for AutoSshApp {
 
         self.poll_monitor();
         self.poll_ssh_events();
+        self.poll_tray_actions();
 
         if self.auto_connect
             && !*self.connected.lock().unwrap()
@@ -109,6 +114,9 @@ impl AutoSshApp {
                         self.remote_status = monitor::DeviceState::Connected;
                         self.last_connection = Some(SystemTime::now());
                         self.last_connection_text = String::from("Just now");
+                        if let Some(ref handle) = self.tray_handle {
+                            handle.update_connection_status(true);
+                        }
                         log::info!("SSH connection established");
                     }
                     ssh::SshEvent::Connecting { attempt, delay_secs } => {
@@ -123,11 +131,42 @@ impl AutoSshApp {
                     ssh::SshEvent::Disconnected(reason) => {
                         *self.connected.lock().unwrap() = false;
                         self.auto_connect_attempted = false;
+                        if let Some(ref handle) = self.tray_handle {
+                            handle.update_connection_status(false);
+                        }
                         if self.remote_status == monitor::DeviceState::Connected {
                             self.remote_status = monitor::DeviceState::SshReady;
                             self.last_connection_text = String::from("Lost connection");
                         }
                         log::info!("SSH disconnected: {}", reason);
+                    }
+
+                }
+            }
+        }
+    }
+
+    fn poll_tray_actions(&mut self) {
+        if let Some(ref handle) = self.tray_handle {
+            while let Ok(action) = handle.try_recv_action() {
+                match action {
+                    tray::TrayAction::Connect => {
+                        if let Some(ref ssh) = self.ssh_handle {
+                            ssh.connect(ssh::ConnectionParams {
+                                host: self.cfg.remote_host.clone(),
+                                port: self.cfg.port,
+                                username: self.cfg.username.clone(),
+                                key_path: self.cfg.ssh_key_path.clone(),
+                            });
+                        }
+                    }
+                    tray::TrayAction::Disconnect => {
+                        if let Some(ref ssh) = self.ssh_handle {
+                            ssh.disconnect();
+                        }
+                    }
+                    tray::TrayAction::Show => {
+                        // Window is already visible
                     }
 
                 }
