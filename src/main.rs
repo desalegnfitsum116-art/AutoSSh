@@ -1,18 +1,13 @@
 mod config;
+mod monitor;
 
 use eframe::egui;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 
-#[derive(Clone, PartialEq)]
-enum DeviceStatus {
-    Online,
-    Offline,
-    Connecting,
-}
-
 struct AutoSshApp {
-    local_status: DeviceStatus,
-    remote_status: DeviceStatus,
+    local_status: monitor::DeviceState,
+    remote_status: monitor::DeviceState,
     auto_connect: bool,
     last_connection: Option<SystemTime>,
     last_connection_text: String,
@@ -20,29 +15,45 @@ struct AutoSshApp {
 
     cfg: config::Config,
     save_result: Option<String>,
+
+    monitor_handle: Option<monitor::MonitorHandle>,
+    connected: Arc<Mutex<bool>>,
 }
 
 impl AutoSshApp {
     fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         let cfg = config::Config::load();
         let auto_connect = cfg.auto_connect;
+        let connected = Arc::new(Mutex::new(false));
+        let connected_clone = connected.clone();
+
+        let monitor_handle = Some(monitor::start_monitor(
+            cfg.remote_host.clone(),
+            cfg.port,
+            cfg.poll_interval_seconds,
+            connected_clone,
+        ));
 
         Self {
-            local_status: DeviceStatus::Online,
-            remote_status: DeviceStatus::Offline,
+            local_status: monitor::DeviceState::Online,
+            remote_status: monitor::DeviceState::Offline,
             auto_connect,
             last_connection: None,
             last_connection_text: String::from("Never"),
             show_settings: false,
             cfg,
             save_result: None,
+            monitor_handle,
+            connected,
         }
     }
 }
 
 impl eframe::App for AutoSshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.request_repaint_after(Duration::from_secs(1));
+        ctx.request_repaint_after(Duration::from_millis(500));
+
+        self.poll_monitor();
 
         if !self.show_settings {
             self.render_dashboard(ctx);
@@ -52,16 +63,32 @@ impl eframe::App for AutoSshApp {
     }
 }
 
+impl Drop for AutoSshApp {
+    fn drop(&mut self) {
+        if let Some(ref handle) = self.monitor_handle {
+            handle.shutdown();
+        }
+    }
+}
+
 impl AutoSshApp {
+    fn poll_monitor(&mut self) {
+        if let Some(ref handle) = self.monitor_handle {
+            while let Ok(state) = handle.recv_state() {
+                self.remote_status = state;
+            }
+        }
+    }
+
     fn render_dashboard(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("AutoSSH");
             ui.separator();
             ui.add_space(8.0);
 
-            status_card(ui, "Local Device", &self.local_status);
+            status_card(ui, "Local Device", self.local_status.label(), true);
             ui.add_space(4.0);
-            status_card(ui, "Remote Device", &self.remote_status);
+            status_card(ui, "Remote Device", self.remote_status.label(), false);
             ui.add_space(4.0);
 
             let auto_label = if self.auto_connect {
@@ -90,30 +117,45 @@ impl AutoSshApp {
             ui.add_space(16.0);
 
             ui.horizontal(|ui| {
+                let can_connect = self.remote_status == monitor::DeviceState::SshReady
+                    && !*self.connected.lock().unwrap();
+                let is_connected = *self.connected.lock().unwrap();
+
                 if ui
-                    .button(
-                        egui::RichText::new("Connect")
-                            .size(16.0)
-                            .color(egui::Color32::WHITE),
+                    .add_enabled(
+                        can_connect || is_connected,
+                        egui::Button::new(
+                            egui::RichText::new("Connect")
+                                .size(16.0)
+                                .color(egui::Color32::WHITE),
+                        ),
                     )
                     .on_hover_text("Manually connect to remote device")
                     .clicked()
                 {
-                    self.remote_status = DeviceStatus::Connecting;
+                    self.remote_status = monitor::DeviceState::Connected;
+                    if let Some(ref handle) = self.monitor_handle {
+                        handle.set_connected();
+                    }
+                    self.last_connection = Some(SystemTime::now());
+                    self.last_connection_text = String::from("Just now");
                 }
 
                 if ui
-                    .button(
-                        egui::RichText::new("Disconnect")
-                            .size(16.0)
-                            .color(egui::Color32::WHITE),
+                    .add_enabled(
+                        is_connected,
+                        egui::Button::new(
+                            egui::RichText::new("Disconnect")
+                                .size(16.0)
+                                .color(egui::Color32::WHITE),
+                        ),
                     )
                     .on_hover_text("Disconnect from remote device")
                     .clicked()
                 {
-                    self.remote_status = DeviceStatus::Offline;
-                    self.last_connection = None;
-                    self.last_connection_text = String::from("Never");
+                    if let Some(ref handle) = self.monitor_handle {
+                        handle.set_disconnected();
+                    }
                 }
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -201,6 +243,12 @@ impl AutoSshApp {
                     match self.cfg.save() {
                         Ok(()) => {
                             self.save_result = Some(String::from("ok"));
+                            if let Some(ref handle) = self.monitor_handle {
+                                handle.update_host(
+                                    self.cfg.remote_host.clone(),
+                                    self.cfg.port,
+                                );
+                            }
                             log::info!("Configuration saved successfully");
                         }
                         Err(e) => {
@@ -224,11 +272,17 @@ impl AutoSshApp {
     }
 }
 
-fn status_card(ui: &mut egui::Ui, label: &str, status: &DeviceStatus) {
-    let (status_text, color) = match status {
-        DeviceStatus::Online => ("Online", egui::Color32::GREEN),
-        DeviceStatus::Offline => ("Offline", egui::Color32::RED),
-        DeviceStatus::Connecting => ("Connecting...", egui::Color32::YELLOW),
+fn status_card(ui: &mut egui::Ui, label: &str, status: &str, is_local: bool) {
+    let color = if is_local {
+        egui::Color32::GREEN
+    } else {
+        match status {
+            "Offline" => egui::Color32::RED,
+            "Online" => egui::Color32::YELLOW,
+            "SSH Ready" => egui::Color32::from_rgb(0, 200, 255),
+            "Connected" => egui::Color32::GREEN,
+            _ => egui::Color32::GRAY,
+        }
     };
 
     egui::Frame::NONE
@@ -246,7 +300,7 @@ fn status_card(ui: &mut egui::Ui, label: &str, status: &DeviceStatus) {
                         .color(egui::Color32::LIGHT_GRAY),
                 );
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.colored_label(color, status_text);
+                    ui.colored_label(color, status);
                 });
             });
         });
@@ -257,7 +311,7 @@ fn main() -> Result<(), eframe::Error> {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([480.0, 400.0])
+            .with_inner_size([480.0, 420.0])
             .with_min_inner_size([400.0, 350.0])
             .with_title("AutoSSH"),
         ..Default::default()
