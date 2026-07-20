@@ -1,5 +1,6 @@
 mod config;
 mod monitor;
+mod ssh;
 
 use eframe::egui;
 use std::sync::{Arc, Mutex};
@@ -17,7 +18,9 @@ struct AutoSshApp {
     save_result: Option<String>,
 
     monitor_handle: Option<monitor::MonitorHandle>,
+    ssh_handle: Option<ssh::SshHandle>,
     connected: Arc<Mutex<bool>>,
+    auto_connect_attempted: bool,
 }
 
 impl AutoSshApp {
@@ -34,6 +37,8 @@ impl AutoSshApp {
             connected_clone,
         ));
 
+        let ssh_handle = Some(ssh::start_ssh_manager());
+
         Self {
             local_status: monitor::DeviceState::Online,
             remote_status: monitor::DeviceState::Offline,
@@ -44,7 +49,9 @@ impl AutoSshApp {
             cfg,
             save_result: None,
             monitor_handle,
+            ssh_handle,
             connected,
+            auto_connect_attempted: false,
         }
     }
 }
@@ -54,6 +61,15 @@ impl eframe::App for AutoSshApp {
         ctx.request_repaint_after(Duration::from_millis(500));
 
         self.poll_monitor();
+        self.poll_ssh_events();
+
+        if self.auto_connect
+            && !*self.connected.lock().unwrap()
+            && !self.auto_connect_attempted
+            && self.remote_status == monitor::DeviceState::SshReady
+        {
+            self.initiate_connection();
+        }
 
         if !self.show_settings {
             self.render_dashboard(ctx);
@@ -68,6 +84,9 @@ impl Drop for AutoSshApp {
         if let Some(ref handle) = self.monitor_handle {
             handle.shutdown();
         }
+        if let Some(ref handle) = self.ssh_handle {
+            handle.shutdown();
+        }
     }
 }
 
@@ -78,6 +97,54 @@ impl AutoSshApp {
                 self.remote_status = state;
             }
         }
+    }
+
+    fn poll_ssh_events(&mut self) {
+        if let Some(ref handle) = self.ssh_handle {
+            while let Ok(event) = handle.try_recv_event() {
+                match event {
+                    ssh::SshEvent::Connected => {
+                        *self.connected.lock().unwrap() = true;
+                        self.remote_status = monitor::DeviceState::Connected;
+                        self.last_connection = Some(SystemTime::now());
+                        self.last_connection_text = String::from("Just now");
+                        log::info!("SSH connection established");
+                    }
+                    ssh::SshEvent::Disconnected(reason) => {
+                        *self.connected.lock().unwrap() = false;
+                        self.auto_connect_attempted = false;
+                        if self.remote_status == monitor::DeviceState::Connected {
+                            self.remote_status = monitor::DeviceState::SshReady;
+                            self.last_connection_text = String::from("Lost connection");
+                        }
+                        log::info!("SSH disconnected: {}", reason);
+                    }
+                    ssh::SshEvent::Error(e) => {
+                        *self.connected.lock().unwrap() = false;
+                        self.auto_connect_attempted = false;
+                        if self.remote_status == monitor::DeviceState::Connected {
+                            self.remote_status = monitor::DeviceState::SshReady;
+                        }
+                        log::error!("SSH error: {}", e);
+                    }
+                }
+            }
+        }
+    }
+
+    fn initiate_connection(&mut self) {
+        self.auto_connect_attempted = true;
+        self.remote_status = monitor::DeviceState::Connected;
+
+        if let Some(ref handle) = self.ssh_handle {
+            handle.connect(
+                self.cfg.remote_host.clone(),
+                self.cfg.port,
+                self.cfg.username.clone(),
+                self.cfg.ssh_key_path.clone(),
+            );
+        }
+        log::info!("Auto-connecting to {}:{}", self.cfg.remote_host, self.cfg.port);
     }
 
     fn render_dashboard(&mut self, ctx: &egui::Context) {
@@ -116,14 +183,14 @@ impl AutoSshApp {
 
             ui.add_space(16.0);
 
-            ui.horizontal(|ui| {
-                let can_connect = self.remote_status == monitor::DeviceState::SshReady
-                    && !*self.connected.lock().unwrap();
-                let is_connected = *self.connected.lock().unwrap();
+            let is_connected = *self.connected.lock().unwrap();
+            let is_ready = self.remote_status == monitor::DeviceState::SshReady;
 
+            ui.horizontal(|ui| {
+                let connect_enabled = is_ready && !is_connected;
                 if ui
                     .add_enabled(
-                        can_connect || is_connected,
+                        connect_enabled,
                         egui::Button::new(
                             egui::RichText::new("Connect")
                                 .size(16.0)
@@ -133,12 +200,14 @@ impl AutoSshApp {
                     .on_hover_text("Manually connect to remote device")
                     .clicked()
                 {
-                    self.remote_status = monitor::DeviceState::Connected;
-                    if let Some(ref handle) = self.monitor_handle {
-                        handle.set_connected();
+                    if let Some(ref handle) = self.ssh_handle {
+                        handle.connect(
+                            self.cfg.remote_host.clone(),
+                            self.cfg.port,
+                            self.cfg.username.clone(),
+                            self.cfg.ssh_key_path.clone(),
+                        );
                     }
-                    self.last_connection = Some(SystemTime::now());
-                    self.last_connection_text = String::from("Just now");
                 }
 
                 if ui
@@ -153,8 +222,8 @@ impl AutoSshApp {
                     .on_hover_text("Disconnect from remote device")
                     .clicked()
                 {
-                    if let Some(ref handle) = self.monitor_handle {
-                        handle.set_disconnected();
+                    if let Some(ref handle) = self.ssh_handle {
+                        handle.disconnect();
                     }
                 }
 
@@ -249,6 +318,7 @@ impl AutoSshApp {
                                     self.cfg.port,
                                 );
                             }
+                            self.auto_connect_attempted = false;
                             log::info!("Configuration saved successfully");
                         }
                         Err(e) => {

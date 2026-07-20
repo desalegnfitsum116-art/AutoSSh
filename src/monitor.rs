@@ -33,8 +33,6 @@ pub struct MonitorHandle {
 enum MonitorCommand {
     UpdateConfig(String, u16),
     Shutdown,
-    SetConnected,
-    SetDisconnected,
 }
 
 impl MonitorHandle {
@@ -44,14 +42,6 @@ impl MonitorHandle {
 
     pub fn update_host(&self, host: String, port: u16) {
         let _ = self.command_tx.send(MonitorCommand::UpdateConfig(host, port));
-    }
-
-    pub fn set_connected(&self) {
-        let _ = self.command_tx.send(MonitorCommand::SetConnected);
-    }
-
-    pub fn set_disconnected(&self) {
-        let _ = self.command_tx.send(MonitorCommand::SetDisconnected);
     }
 
     pub fn shutdown(&self) {
@@ -115,14 +105,6 @@ pub fn start_monitor(
                         s.port = p;
                     }
                     Ok(MonitorCommand::Shutdown) => break,
-                    Ok(MonitorCommand::SetConnected) => {
-                        let mut c = connected.lock().unwrap();
-                        *c = true;
-                    }
-                    Ok(MonitorCommand::SetDisconnected) => {
-                        let mut c = connected.lock().unwrap();
-                        *c = false;
-                    }
                     Err(mpsc::RecvTimeoutError::Timeout) => {}
                     Err(mpsc::RecvTimeoutError::Disconnected) => break,
                 }
