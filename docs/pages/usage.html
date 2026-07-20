@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Usage Guide</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Usage Guide</h2>
+    </div>
+
+    <h3>Dashboard</h3>
+    <p>The main dashboard shows:</p>
+    <ul>
+      <li><strong>Local Device</strong> — Always shows Online (your machine)</li>
+      <li><strong>Remote Device</strong> — Current status of the remote device</li>
+      <li><strong>Auto-Connect</strong> — Whether auto-connect is enabled (green/gray)</li>
+      <li><strong>Last Connection</strong> — Timestamp of the last successful SSH connection</li>
+      <li><strong>Connect / Disconnect</strong> — Manual connection controls</li>
+    </ul>
+
+    <h3>System Tray</h3>
+    <ul>
+      <li><strong>Connect/Disconnect</strong> — Toggle SSH connection</li>
+      <li><strong>Show Dashboard</strong> — Bring the main window to front</li>
+      <li><strong>Quit</strong> — Exit the application entirely</li>
+    </ul>
+    <p>The tray icon changes color based on connection status. Clicking the window close button hides it to the tray instead of quitting when the system tray is available.</p>
+
+    <h3>Settings</h3>
+    <p>Access settings from the gear icon on the dashboard. Changes take effect after clicking <strong>Save</strong>. The monitor thread automatically picks up new host/port settings.</p>
+
+    <h3>Auto-Connect Rules</h3>
+    <pre><code>IF device is online
+  AND SSH port is reachable
+  AND SSH key authenticates successfully
+THEN connect automatically.
+
+IF connection drops
+THEN retry with exponential backoff
+   (1s → 2s → 4s → 8s → 16s → 32s → 60s caps)</code></pre>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

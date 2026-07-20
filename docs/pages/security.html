@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Security</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Security</h2>
+    </div>
+
+    <h3>SSH Key Authentication</h3>
+    <p>AutoSSH uses SSH key authentication exclusively. No passwords are stored, transmitted, or handled by the application. This is the most secure authentication method for automated SSH connections.</p>
+
+    <h3>Credential Storage</h3>
+    <ul>
+      <li>Configuration is stored in your home directory (<code>~/.config/auto-ssh/config.toml</code>)</li>
+      <li>File permissions: <code>644</code> (world-readable) — ensure your SSH private key has <code>chmod 600</code></li>
+      <li>No credentials are sent over the network beyond standard SSH protocol</li>
+    </ul>
+
+    <h3>Network Security</h3>
+    <ul>
+      <li>Outbound connections only to the configured remote host and port</li>
+      <li>All traffic is encrypted via the SSH protocol (libssh2)</li>
+      <li>No telemetry, analytics, or external service calls</li>
+      <li>No listening ports or server functionality</li>
+    </ul>
+
+    <h3>Best Practices</h3>
+    <pre><code># Set correct permissions on your SSH key
+chmod 600 ~/.ssh/id_ed25519
+chmod 700 ~/.ssh
+
+# Add your public key to the remote device
+ssh-copy-id user@remote-host</code></pre>
+
+    <div class="note warning">
+      <strong>Important</strong>
+      <p>Ensure your SSH private key file has restricted permissions. libssh2 will refuse to use a key with overly permissive permissions.</p>
+    </div>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

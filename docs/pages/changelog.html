@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Changelog</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Changelog</h2>
+    </div>
+
+    <h3>v0.1.0 — Initial Release</h3>
+
+    <h4>Features</h4>
+    <ul>
+      <li>Automatic SSH connection when remote device becomes reachable</li>
+      <li>Automatic reconnection with exponential backoff (1s → 2s → 4s → 8s → 16s → 32s → 60s caps)</li>
+      <li>SSH key authentication via libssh2 (Ed25519, RSA)</li>
+      <li>Background network monitoring (DNS resolution + TCP port check)</li>
+      <li>Live status dashboard with color-coded device states</li>
+      <li>Dark-themed native GUI (egui/eframe)</li>
+      <li>System tray integration (StatusNotifierItem via DBus)</li>
+      <li>Session keepalive (every 15s) and health checks (every 30s)</li>
+      <li>Session recovery after sleep/wake and network interruptions</li>
+      <li>TOML configuration at <code>~/.config/auto-ssh/config.toml</code></li>
+      <li>XDG autostart support (start on boot toggle)</li>
+      <li>Minimize to tray on close</li>
+      <li>Comprehensive logging via env_logger (<code>RUST_LOG=info</code>)</li>
+    </ul>
+
+    <h4>Packages</h4>
+    <ul>
+      <li>Debian/Ubuntu .deb package (5.1 MB)</li>
+      <li>Portable AppImage (6.7 MB)</li>
+      <li>Stripped Linux ELF binary (17 MB)</li>
+    </ul>
+
+    <h4>Notes</h4>
+    <ul>
+      <li>Single remote device support (multiple devices planned)</li>
+      <li>Linux x86_64 only (cross-platform support planned)</li>
+      <li>SSH key authentication only (password auth not supported)</li>
+      <li>No host key fingerprint verification yet</li>
+    </ul>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

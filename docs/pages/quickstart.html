@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Quick Start</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Quick Start</h2>
+    </div>
+
+    <ol>
+      <li>Launch AutoSSH</li>
+      <li>Open <strong>Settings</strong> (gear icon in the bottom-right)</li>
+      <li>Enter the remote host IP or hostname</li>
+      <li>Enter the SSH username</li>
+      <li>Set the SSH port (default: 22)</li>
+      <li>Provide the path to your SSH private key (e.g. <code>~/.ssh/id_ed25519</code>)</li>
+      <li>Toggle <strong>Auto-Connect</strong> to <em>Enabled</em></li>
+      <li>Click <strong>Save</strong></li>
+    </ol>
+
+    <p>AutoSSH immediately starts monitoring the remote device. When the device becomes reachable, connection happens automatically.</p>
+
+    <h3>Device Status Flow</h3>
+    <div class="status-flow">
+      <div class="status-step">
+        <span class="status-dot offline"></span>
+        <span>Offline</span>
+        <small>Host unreachable or DNS fails to resolve</small>
+      </div>
+      <span class="arrow">→</span>
+      <div class="status-step">
+        <span class="status-dot online"></span>
+        <span>Online</span>
+        <small>Host resolves but SSH port is closed</small>
+      </div>
+      <span class="arrow">→</span>
+      <div class="status-step">
+        <span class="status-dot sshready"></span>
+        <span>SSH Ready</span>
+        <small>Port 22 is open and accepting connections</small>
+      </div>
+      <span class="arrow">→</span>
+      <div class="status-step">
+        <span class="status-dot connected"></span>
+        <span>Connected</span>
+        <small>SSH session established and authenticated</small>
+      </div>
+    </div>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

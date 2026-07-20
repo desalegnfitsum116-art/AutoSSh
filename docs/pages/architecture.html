@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Architecture</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Architecture</h2>
+    </div>
+
+    <div class="arch-diagram">
+      <pre>┌───────────────────────────────────────────────────────┐
+│                    AutoSSH Engine                      │
+│                                                       │
+│  ┌─────────────┐   ┌──────────────┐   ┌────────────┐ │
+│  │   Monitor   │──▶│     SSH      │──▶│  Keepalive  │ │
+│  │  (tokio)    │   │   Manager    │   │  (15s tick) │ │
+│  └─────────────┘   └──────────────┘   └────────────┘ │
+│       │                  │                  │          │
+│       ▼                  ▼                  ▼          │
+│  DNS + TCP/22      Key Auth +         Session health  │
+│  every N secs      Session create     check every 30s │
+│                                                       │
+│  ┌─────────────┐   ┌──────────────┐   ┌────────────┐ │
+│  │  egui/eframe│   │  System Tray │   │   Config    │ │
+│  │    UI       │   │  (ksni/SNI)  │   │ (TOML file) │ │
+│  └─────────────┘   └──────────────┘   └────────────┘ │
+└───────────────────────────────────────────────────────┘</pre>
+    </div>
+
+    <h3>Project Structure</h3>
+    <pre><code>src/
+├── main.rs         App entry, egui dashboard, settings UI
+├── config.rs       TOML config load/save (XDG config dir)
+├── monitor.rs      Background network poller (tokio)
+├── ssh.rs          SSH session manager, reconnection engine
+├── tray.rs         System tray (ksni / StatusNotifierItem)
+└── autostart.rs    Desktop autostart file management</code></pre>
+
+    <h3>Threading Model</h3>
+    <table>
+      <tr><th>Thread</th><th>Role</th><th>Runtime</th></tr>
+      <tr><td>Main (GUI)</td><td>eframe event loop, renders UI</td><td>winit/glutin</td></tr>
+      <tr><td>Monitor</td><td>Network polling (DNS + TCP)</td><td>tokio (current_thread)</td></tr>
+      <tr><td>SSH Manager</td><td>Session lifecycle, reconnection</td><td>std thread (blocking)</td></tr>
+      <tr><td>Tray Updater</td><td>Periodic tray icon refresh</td><td>std thread</td></tr>
+    </table>
+
+    <h3>Communication</h3>
+    <p>All threads communicate via <code>std::sync::mpsc</code> channels. The GUI thread polls for events each frame (500ms interval). Shared connection state is protected by <code>Arc&lt;Mutex&lt;bool&gt;&gt;</code>.</p>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

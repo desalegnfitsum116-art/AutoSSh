@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Contributing</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Contributing</h2>
+    </div>
+
+    <p>Contributions are welcome! AutoSSH is a small utility built by people who want SSH connections to be boring — set once, connect forever.</p>
+
+    <h3>Development Setup</h3>
+    <pre><code>git clone https://github.com/yourusername/autossh.git
+cd autossh
+cargo build</code></pre>
+
+    <h3>Code Quality</h3>
+    <pre><code>cargo fmt              # Format code
+cargo clippy --all-targets --all-features  # Lint
+cargo test             # Run tests
+cargo check            # Fast compilation check</code></pre>
+
+    <h3>Pull Request Checklist</h3>
+    <ul>
+      <li><code>cargo fmt</code> has been run</li>
+      <li><code>cargo clippy</code> passes with no warnings</li>
+      <li><code>cargo test</code> passes</li>
+      <li><code>cargo build --release</code> compiles successfully</li>
+      <li>Changes include appropriate error handling and logging</li>
+    </ul>
+
+    <h3>Branch Naming</h3>
+    <pre><code>feature/multiple-devices
+fix/tray-icon-crash
+docs/readme-typo
+refactor/monitor-module</code></pre>
+
+    <h3>Commit Messages</h3>
+    <p>Follow <a href="https://www.conventionalcommits.org/" target="_blank">Conventional Commits</a>:</p>
+    <pre><code>feat: add automatic reconnection with exponential backoff
+fix: handle SSH key path with tilde expansion
+docs: update configuration example in README
+refactor: extract network check into separate module
+chore: bump tokio dependency to 1.40</code></pre>
+
+    <p>See <a href="https://github.com/yourusername/autossh/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a> on GitHub for the full guide.</p>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

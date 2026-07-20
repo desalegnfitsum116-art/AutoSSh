@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Configuration</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Configuration</h2>
+    </div>
+
+    <p>Configuration is stored at <code>~/.config/auto-ssh/config.toml</code>. You can edit it directly or use the Settings panel in the GUI.</p>
+
+    <h3>Example Config</h3>
+    <pre><code>device_name = "Laptop"
+remote_host = "192.168.1.10"
+username = "fitsum"
+port = 22
+ssh_key_path = "~/.ssh/id_ed25519"
+auto_connect = true
+start_on_boot = true
+poll_interval_seconds = 5</code></pre>
+
+    <h3>Configuration Reference</h3>
+    <table>
+      <tr><th>Key</th><th>Default</th><th>Description</th></tr>
+      <tr><td><code>device_name</code></td><td><code>My Laptop</code></td><td>Display name for the local device</td></tr>
+      <tr><td><code>remote_host</code></td><td><code>192.168.1.100</code></td><td>IP address or hostname of the remote device</td></tr>
+      <tr><td><code>username</code></td><td><code>user</code></td><td>SSH login username</td></tr>
+      <tr><td><code>port</code></td><td><code>22</code></td><td>SSH port (1–65535)</td></tr>
+      <tr><td><code>ssh_key_path</code></td><td><code>~/.ssh/id_ed25519</code></td><td>Path to the SSH private key (tilde expansion supported)</td></tr>
+      <tr><td><code>auto_connect</code></td><td><code>true</code></td><td>Automatically connect when device is SSH Ready</td></tr>
+      <tr><td><code>start_on_boot</code></td><td><code>false</code></td><td>Launch AutoSSH at system login (XDG autostart)</td></tr>
+      <tr><td><code>poll_interval_seconds</code></td><td><code>5</code></td><td>Interval between network checks (1–60)</td></tr>
+    </table>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

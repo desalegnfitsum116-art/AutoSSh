@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Troubleshooting</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Troubleshooting</h2>
+    </div>
+
+    <h3>Connection Never Establishes</h3>
+    <table>
+      <tr><th>Problem</th><th>Solution</th></tr>
+      <tr><td>Hostname doesn't resolve</td><td>Check DNS or use IP address directly</td></tr>
+      <tr><td>Port 22 is closed</td><td>Ensure SSH server is running: <code>sudo systemctl status ssh</code></td></tr>
+      <tr><td>Firewall blocking</td><td>Check firewall rules: <code>sudo ufw status</code></td></tr>
+      <tr><td>Key not found</td><td>Verify the key path exists: <code>ls -la ~/.ssh/</code></td></tr>
+      <tr><td>Key not authorized</td><td>Add your public key to remote <code>~/.ssh/authorized_keys</code></td></tr>
+      <tr><td>Wrong SSH port</td><td>Verify the port in Settings matches the remote SSH server config</td></tr>
+    </table>
+
+    <h3>Connection Drops Frequently</h3>
+    <ul>
+      <li>Check network stability (Wi-Fi interference, Ethernet cable)</li>
+      <li>AutoSSH will automatically reconnect with backoff — wait up to 60 seconds</li>
+      <li>Check SSH server <code>ClientAliveInterval</code> and <code>ClientAliveCountMax</code> settings</li>
+      <li>Check if the remote device is going to sleep or losing power</li>
+    </ul>
+
+    <h3>Logs</h3>
+    <p>Run AutoSSH from a terminal to see logs:</p>
+    <pre><code>RUST_LOG=info ./auto-ssh</code></pre>
+    <p>Available log levels: <code>error</code>, <code>warn</code>, <code>info</code>, <code>debug</code>, <code>trace</code></p>
+
+    <h3>App Doesn't Start</h3>
+    <ul>
+      <li>Ensure all system dependencies are installed (libssl3, libc6)</li>
+      <li>Run from terminal and check the error message</li>
+      <li>Try removing the config file: <code>rm ~/.config/auto-ssh/config.toml</code></li>
+      <li>Check if another instance is already running</li>
+    </ul>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

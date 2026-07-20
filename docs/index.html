@@ -9,392 +9,43 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav id="sidebar">
-    <div class="sidebar-header">
-      <h1>AutoSSH</h1>
-      <span class="version">v0.1.0</span>
-    </div>
-    <ul class="nav-list">
-      <li><a href="#intro" class="nav-link active" data-section="intro">Introduction</a></li>
-      <li><a href="#install" class="nav-link" data-section="install">Installation</a></li>
-      <li><a href="#quickstart" class="nav-link" data-section="quickstart">Quick Start</a></li>
-      <li><a href="#config" class="nav-link" data-section="config">Configuration</a></li>
-      <li><a href="#usage" class="nav-link" data-section="usage">Usage Guide</a></li>
-      <li><a href="#architecture" class="nav-link" data-section="architecture">Architecture</a></li>
-      <li><a href="#security" class="nav-link" data-section="security">Security</a></li>
-      <li><a href="#troubleshooting" class="nav-link" data-section="troubleshooting">Troubleshooting</a></li>
-      <li><a href="#faq" class="nav-link" data-section="faq">FAQ</a></li>
-      <li><a href="#contributing" class="nav-link" data-section="contributing">Contributing</a></li>
-      <li><a href="#changelog" class="nav-link" data-section="changelog">Changelog</a></li>
-    </ul>
-    <div class="sidebar-footer">
-      <a href="https://github.com/yourusername/autossh" target="_blank">GitHub</a>
-      <a href="https://github.com/yourusername/autossh/releases" target="_blank">Releases</a>
-    </div>
-  </nav>
+  <div id="sidebar-container"></div>
 
   <main id="content">
-    <section id="section-intro" class="section active">
+    <div class="page-header">
       <h2>Introduction</h2>
-      <p class="lead">AutoSSH is a lightweight desktop utility that automatically connects trusted devices through SSH when both devices are powered on and reachable on the network. No terminals, no manual commands.</p>
+    </div>
 
-      <div class="badges">
-        <span class="badge">Rust</span>
-        <span class="badge">MIT License</span>
-        <span class="badge">Cross Platform</span>
-        <span class="badge">v0.1.0</span>
-      </div>
+    <p class="lead">AutoSSH is a lightweight desktop utility that automatically connects trusted devices through SSH when both devices are powered on and reachable on the network. No terminals, no manual commands.</p>
 
-      <h3>Features</h3>
-      <ul class="feature-list">
-        <li><strong>Auto-connect</strong> — Establishes an SSH session as soon as the remote device becomes reachable</li>
-        <li><strong>Auto-reconnect</strong> — Survives network drops, sleep/wake cycles, and remote reboots with exponential backoff</li>
-        <li><strong>Zero terminal usage</strong> — No need to open a shell and type SSH commands</li>
-        <li><strong>SSH key authentication</strong> — Uses your existing Ed25519 or RSA keys</li>
-        <li><strong>Background service</strong> — Runs quietly in the system tray and monitors devices 24/7</li>
-        <li><strong>Live status</strong> — Dashboard shows Offline → Online → SSH Ready → Connected</li>
-        <li><strong>System tray integration</strong> — Connect, disconnect, or quit directly from the tray menu</li>
-        <li><strong>Native GUI</strong> — Built with egui/eframe — lightweight, dark-themed</li>
-        <li><strong>Start on boot</strong> — Optionally launch at login and minimize to tray</li>
-        <li><strong>Portable config</strong> — Settings stored in TOML format at <code>~/.config/auto-ssh/config.toml</code></li>
-      </ul>
+    <div class="badges">
+      <span class="badge">Rust</span>
+      <span class="badge">MIT License</span>
+      <span class="badge">Cross Platform</span>
+      <span class="badge">v0.1.0</span>
+    </div>
 
-      <h3>Use Cases</h3>
-      <ul>
-        <li>Developers who want to SSH into a home server without typing <code>ssh user@host</code> every time</li>
-        <li>Homelab users who need persistent terminal access to a Raspberry Pi</li>
-        <li>DevOps engineers managing jump-box access</li>
-        <li>Anyone managing multiple computers who wants SSH connections that just work</li>
-      </ul>
-    </section>
+    <h3>Features</h3>
+    <ul class="feature-list">
+      <li><strong>Auto-connect</strong> — Establishes an SSH session as soon as the remote device becomes reachable</li>
+      <li><strong>Auto-reconnect</strong> — Survives network drops, sleep/wake cycles, and remote reboots with exponential backoff</li>
+      <li><strong>Zero terminal usage</strong> — No need to open a shell and type SSH commands</li>
+      <li><strong>SSH key authentication</strong> — Uses your existing Ed25519 or RSA keys</li>
+      <li><strong>Background service</strong> — Runs quietly in the system tray and monitors devices 24/7</li>
+      <li><strong>Live status</strong> — Dashboard shows Offline → Online → SSH Ready → Connected</li>
+      <li><strong>System tray integration</strong> — Connect, disconnect, or quit directly from the tray menu</li>
+      <li><strong>Native GUI</strong> — Built with egui/eframe — lightweight, dark-themed</li>
+      <li><strong>Start on boot</strong> — Optionally launch at login and minimize to tray</li>
+      <li><strong>Portable config</strong> — Settings stored in TOML format at <code>~/.config/auto-ssh/config.toml</code></li>
+    </ul>
 
-    <section id="section-install" class="section">
-      <h2>Installation</h2>
-
-      <h3>Linux</h3>
-
-      <h4>Debian / Ubuntu (.deb)</h4>
-      <pre><code>sudo dpkg -i auto-ssh_0.1.0_amd64.deb</code></pre>
-
-      <h4>AppImage (all distros)</h4>
-      <pre><code>chmod +x auto-ssh-x86_64.AppImage
-./auto-ssh-x86_64.AppImage</code></pre>
-
-      <h4>From source</h4>
-      <pre><code>git clone https://github.com/yourusername/autossh.git
-cd autossh
-cargo build --release
-strip target/release/auto-ssh
-./target/release/auto-ssh</code></pre>
-
-      <div class="note">
-        <strong>Dependencies (Debian/Ubuntu):</strong>
-        <pre><code>sudo apt install build-essential libssl-dev cmake</code></pre>
-        <p>The system tray uses a pure Rust StatusNotifierItem implementation — no additional indicator libraries required.</p>
-      </div>
-
-      <h3>From Source (all platforms)</h3>
-      <table>
-        <tr><th>Prerequisite</th><th>Version</th></tr>
-        <tr><td>Rust</td><td>1.70+ (stable)</td></tr>
-        <tr><td>Cargo</td><td>Comes with Rust</td></tr>
-        <tr><td>CMake</td><td>3.0+ (for libssh2)</td></tr>
-        <tr><td>OpenSSL dev headers</td><td>1.1+</td></tr>
-      </table>
-    </section>
-
-    <section id="section-quickstart" class="section">
-      <h2>Quick Start</h2>
-
-      <ol>
-        <li>Launch AutoSSH</li>
-        <li>Open <strong>Settings</strong> (gear icon in the bottom-right)</li>
-        <li>Enter the remote host IP or hostname</li>
-        <li>Enter the SSH username</li>
-        <li>Set the SSH port (default: 22)</li>
-        <li>Provide the path to your SSH private key (e.g. <code>~/.ssh/id_ed25519</code>)</li>
-        <li>Toggle <strong>Auto-Connect</strong> to <em>Enabled</em></li>
-        <li>Click <strong>Save</strong></li>
-      </ol>
-
-      <p>AutoSSH immediately starts monitoring the remote device. When the device becomes reachable, connection happens automatically.</p>
-
-      <div class="status-flow">
-        <div class="status-step">
-          <span class="status-dot offline"></span>
-          <span>Offline</span>
-          <small>Host unreachable or DNS fails to resolve</small>
-        </div>
-        <span class="arrow">→</span>
-        <div class="status-step">
-          <span class="status-dot online"></span>
-          <span>Online</span>
-          <small>Host resolves but SSH port is closed</small>
-        </div>
-        <span class="arrow">→</span>
-        <div class="status-step">
-          <span class="status-dot sshready"></span>
-          <span>SSH Ready</span>
-          <small>Port 22 is open and accepting connections</small>
-        </div>
-        <span class="arrow">→</span>
-        <div class="status-step">
-          <span class="status-dot connected"></span>
-          <span>Connected</span>
-          <small>SSH session established and authenticated</small>
-        </div>
-      </div>
-    </section>
-
-    <section id="section-config" class="section">
-      <h2>Configuration</h2>
-
-      <p>Configuration is stored at <code>~/.config/auto-ssh/config.toml</code>. You can edit it directly or use the Settings panel in the GUI.</p>
-
-      <h3>Example Config</h3>
-      <pre><code>device_name = "Laptop"
-remote_host = "192.168.1.10"
-username = "fitsum"
-port = 22
-ssh_key_path = "~/.ssh/id_ed25519"
-auto_connect = true
-start_on_boot = true
-poll_interval_seconds = 5</code></pre>
-
-      <h3>Configuration Reference</h3>
-      <table>
-        <tr><th>Key</th><th>Default</th><th>Description</th></tr>
-        <tr><td><code>device_name</code></td><td><code>My Laptop</code></td><td>Display name for the local device</td></tr>
-        <tr><td><code>remote_host</code></td><td><code>192.168.1.100</code></td><td>IP address or hostname of the remote device</td></tr>
-        <tr><td><code>username</code></td><td><code>user</code></td><td>SSH login username</td></tr>
-        <tr><td><code>port</code></td><td><code>22</code></td><td>SSH port</td></tr>
-        <tr><td><code>ssh_key_path</code></td><td><code>~/.ssh/id_ed25519</code></td><td>Path to the SSH private key (tilde expansion supported)</td></tr>
-        <tr><td><code>auto_connect</code></td><td><code>true</code></td><td>Automatically connect when device is SSH Ready</td></tr>
-        <tr><td><code>start_on_boot</code></td><td><code>false</code></td><td>Launch AutoSSH at system login (XDG autostart)</td></tr>
-        <tr><td><code>poll_interval_seconds</code></td><td><code>5</code></td><td>Interval between network checks (1–60)</td></tr>
-      </table>
-    </section>
-
-    <section id="section-usage" class="section">
-      <h2>Usage Guide</h2>
-
-      <h3>Dashboard</h3>
-      <p>The main dashboard shows:</p>
-      <ul>
-        <li><strong>Local Device</strong> — Always shows Online (your machine)</li>
-        <li><strong>Remote Device</strong> — Current status of the remote device</li>
-        <li><strong>Auto-Connect</strong> — Whether auto-connect is enabled (green/gray)</li>
-        <li><strong>Last Connection</strong> — Timestamp of the last successful SSH connection</li>
-        <li><strong>Connect / Disconnect</strong> — Manual connection controls</li>
-      </ul>
-
-      <h3>System Tray</h3>
-      <ul>
-        <li><strong>Connect/Disconnect</strong> — Toggle SSH connection</li>
-        <li><strong>Show Dashboard</strong> — Bring the main window to front</li>
-        <li><strong>Quit</strong> — Exit the application entirely</li>
-      </ul>
-      <p>The tray icon changes color based on connection status. Clicking the window close button hides it to the tray instead of quitting.</p>
-
-      <h3>Settings</h3>
-      <p>Access settings from the gear icon on the dashboard. Changes take effect after clicking <strong>Save</strong>. The monitor thread automatically picks up new host/port settings.</p>
-
-      <h3>Auto-Connect Rules</h3>
-      <pre><code>IF device is online
-  AND SSH port is reachable
-  AND SSH key authenticates successfully
-THEN connect automatically.
-
-IF connection drops
-THEN retry with exponential backoff
-   (1s → 2s → 4s → 8s → 16s → 32s → 60s caps)</code></pre>
-    </section>
-
-    <section id="section-architecture" class="section">
-      <h2>Architecture</h2>
-
-      <div class="arch-diagram">
-        <pre>┌───────────────────────────────────────────────────────┐
-│                    AutoSSH Engine                      │
-│                                                       │
-│  ┌─────────────┐   ┌──────────────┐   ┌────────────┐ │
-│  │   Monitor   │──▶│     SSH      │──▶│  Keepalive  │ │
-│  │  (tokio)    │   │   Manager    │   │  (15s tick) │ │
-│  └─────────────┘   └──────────────┘   └────────────┘ │
-│       │                  │                  │          │
-│       ▼                  ▼                  ▼          │
-│  DNS + TCP/22      Key Auth +         Session health  │
-│  every N secs      Session create     check every 30s │
-│                                                       │
-│  ┌─────────────┐   ┌──────────────┐   ┌────────────┐ │
-│  │  egui/eframe│   │  System Tray │   │   Config    │ │
-│  │    UI       │   │  (ksni/SNI)  │   │ (TOML file) │ │
-│  └─────────────┘   └──────────────┘   └────────────┘ │
-└───────────────────────────────────────────────────────┘</pre>
-      </div>
-
-      <h3>Project Structure</h3>
-      <pre><code>src/
-├── main.rs         App entry, egui dashboard, settings UI
-├── config.rs       TOML config load/save (XDG config dir)
-├── monitor.rs      Background network poller (tokio)
-├── ssh.rs          SSH session manager, reconnection engine
-├── tray.rs         System tray (ksni / StatusNotifierItem)
-└── autostart.rs    Desktop autostart file management</code></pre>
-
-      <h3>Threading Model</h3>
-      <table>
-        <tr><th>Thread</th><th>Role</th><th>Runtime</th></tr>
-        <tr><td>Main (GUI)</td><td>eframe event loop, renders UI</td><td>winit/glutin</td></tr>
-        <tr><td>Monitor</td><td>Network polling (DNS + TCP)</td><td>tokio (current_thread)</td></tr>
-        <tr><td>SSH Manager</td><td>Session lifecycle, reconnection</td><td>std thread (blocking)</td></tr>
-        <tr><td>Tray Updater</td><td>Periodic tray icon refresh</td><td>std thread</td></tr>
-      </table>
-    </section>
-
-    <section id="section-security" class="section">
-      <h2>Security</h2>
-
-      <h3>SSH Key Authentication</h3>
-      <p>AutoSSH uses SSH key authentication exclusively. No passwords are stored, transmitted, or handled by the application. This is the most secure authentication method for automated SSH connections.</p>
-
-      <h3>Credential Storage</h3>
-      <ul>
-        <li>Configuration is stored in your home directory (<code>~/.config/auto-ssh/config.toml</code>)</li>
-        <li>File permissions: <code>644</code> (world-readable) — ensure your SSH private key has <code>chmod 600</code></li>
-        <li>No credentials are sent over the network beyond standard SSH protocol</li>
-      </ul>
-
-      <h3>Network Security</h3>
-      <ul>
-        <li>Outbound connections only to the configured remote host and port</li>
-        <li>All traffic is encrypted via the SSH protocol (libssh2)</li>
-        <li>No telemetry, analytics, or external service calls</li>
-        <li>No listening ports or server functionality</li>
-      </ul>
-
-      <h3>Key Permissions</h3>
-      <pre><code>chmod 600 ~/.ssh/id_ed25519
-chmod 700 ~/.ssh</code></pre>
-
-      <div class="note warning">
-        <strong>Important:</strong> Ensure your SSH private key file has restricted permissions. AutoSSH will refuse to use a key with overly permissive permissions (libssh2 enforces this).
-      </div>
-    </section>
-
-    <section id="section-troubleshooting" class="section">
-      <h2>Troubleshooting</h2>
-
-      <h3>Connection Never Establishes</h3>
-      <table>
-        <tr><th>Problem</th><th>Solution</th></tr>
-        <tr><td>Hostname doesn't resolve</td><td>Check DNS or use IP address directly</td></tr>
-        <tr><td>Port 22 is closed</td><td>Ensure SSH server is running: <code>sudo systemctl status ssh</code></td></tr>
-        <tr><td>Firewall blocking</td><td>Check firewall rules: <code>sudo ufw status</code></td></tr>
-        <tr><td>Key not found</td><td>Verify the key path exists: <code>ls -la ~/.ssh/</code></td></tr>
-        <tr><td>Key not authorized</td><td>Add your public key to remote <code>~/.ssh/authorized_keys</code></td></tr>
-      </table>
-
-      <h3>Connection Drops Frequently</h3>
-      <ul>
-        <li>Check network stability (Wi-Fi interference, Ethernet cable)</li>
-        <li>AutoSSH will automatically reconnect with backoff — wait up to 60 seconds</li>
-        <li>Check SSH server <code>ClientAliveInterval</code> and <code>ClientAliveCountMax</code> settings</li>
-      </ul>
-
-      <h3>Logs</h3>
-      <p>Run AutoSSH from a terminal to see logs:</p>
-      <pre><code>RUST_LOG=info ./auto-ssh</code></pre>
-      <p>Log levels: <code>error</code>, <code>warn</code>, <code>info</code>, <code>debug</code>, <code>trace</code></p>
-    </section>
-
-    <section id="section-faq" class="section">
-      <h2>FAQ</h2>
-
-      <div class="faq-item">
-        <h4>Do I need root / sudo permissions?</h4>
-        <p>No. AutoSSH runs as a regular user and uses standard SSH keys.</p>
-      </div>
-
-      <div class="faq-item">
-        <h4>Can it handle password-based auth?</h4>
-        <p>Not currently. SSH key authentication is preferred and more secure.</p>
-      </div>
-
-      <div class="faq-item">
-        <h4>What happens when my laptop goes to sleep?</h4>
-        <p>AutoSSH detects the connection drop, enters reconnection mode, and automatically reconnects when the network is available again using exponential backoff.</p>
-      </div>
-
-      <div class="faq-item">
-        <h4>Does it work with non-standard SSH ports?</h4>
-        <p>Yes. Set the port in Settings or directly in <code>config.toml</code>.</p>
-      </div>
-
-      <div class="faq-item">
-        <h4>Is this a terminal emulator?</h4>
-        <p>No. AutoSSH establishes SSH sessions in the background. It does not provide a terminal UI or shell.</p>
-      </div>
-
-      <div class="faq-item">
-        <h4>Can I use it with SSH jump hosts?</h4>
-        <p>Not yet. This is planned for a future release.</p>
-      </div>
-
-      <div class="faq-item">
-        <h4>How do I uninstall?</h4>
-        <p>If installed via .deb: <code>sudo apt remove auto-ssh</code>. Remove the config: <code>rm -rf ~/.config/auto-ssh</code>. Remove autostart: <code>rm ~/.config/autostart/auto-ssh.desktop</code>.</p>
-      </div>
-    </section>
-
-    <section id="section-contributing" class="section">
-      <h2>Contributing</h2>
-
-      <p>Contributions are welcome! AutoSSH is a small utility built by people who want SSH connections to be boring — set once, connect forever.</p>
-
-      <h3>Development Setup</h3>
-      <pre><code>git clone https://github.com/yourusername/autossh.git
-cd autossh
-cargo build</code></pre>
-
-      <h3>Code Quality</h3>
-      <pre><code>cargo fmt              # Format code
-cargo clippy --all-targets --all-features  # Lint
-cargo test             # Run tests
-cargo check            # Fast compilation check</code></pre>
-
-      <h3>Pull Request Checklist</h3>
-      <ul>
-        <li><code>cargo fmt</code> has been run</li>
-        <li><code>cargo clippy</code> passes with no warnings</li>
-        <li><code>cargo test</code> passes</li>
-        <li><code>cargo build --release</code> compiles successfully</li>
-        <li>Changes include appropriate error handling and logging</li>
-      </ul>
-
-      <p>See <a href="https://github.com/yourusername/autossh/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a> for the full guide.</p>
-    </section>
-
-    <section id="section-changelog" class="section">
-      <h2>Changelog</h2>
-
-      <h3>v0.1.0 — Initial Release</h3>
-      <ul>
-        <li>Automatic SSH connection when remote device becomes reachable</li>
-        <li>Automatic reconnection with exponential backoff (1s capped at 60s)</li>
-        <li>SSH key authentication via libssh2</li>
-        <li>Background network monitoring (DNS + TCP port check)</li>
-        <li>Live status dashboard with color-coded states</li>
-        <li>Dark-themed native GUI (egui/eframe)</li>
-        <li>System tray integration (StatusNotifierItem via DBus)</li>
-        <li>Session keepalive (15s) and health checks (30s)</li>
-        <li>TOML configuration at <code>~/.config/auto-ssh/config.toml</code></li>
-        <li>XDG autostart support (start on boot)</li>
-        <li>Minimize to tray on close</li>
-        <li>Comprehensive logging via env_logger</li>
-        <li>Debian package (.deb) and portable AppImage builds</li>
-      </ul>
-    </section>
+    <h3>Use Cases</h3>
+    <ul>
+      <li>Developers who want to SSH into a home server without typing <code>ssh user@host</code> every time</li>
+      <li>Homelab users who need persistent terminal access to a Raspberry Pi</li>
+      <li>DevOps engineers managing jump-box access</li>
+      <li>Anyone managing multiple computers who wants SSH connections that just work</li>
+    </ul>
   </main>
 
   <script src="script.js"></script>

@@ -1,76 +1,44 @@
 (function () {
   'use strict';
 
-  const sidebar = document.getElementById('sidebar');
-  const navLinks = document.querySelectorAll('.nav-link');
-  const sections = document.querySelectorAll('.section');
+  var currentPage = getCurrentPage();
 
-  let activeSection = 'intro';
-
-  function activateSection(sectionId) {
-    activeSection = sectionId;
-
-    sections.forEach(function (el) {
-      el.classList.remove('active');
-    });
-
-    navLinks.forEach(function (link) {
-      link.classList.remove('active');
-    });
-
-    var sectionEl = document.getElementById('section-' + sectionId);
-    if (sectionEl) {
-      sectionEl.classList.add('active');
-    }
-
-    var activeLink = document.querySelector(
-      '.nav-link[data-section="' + sectionId + '"]'
-    );
-    if (activeLink) {
-      activeLink.classList.add('active');
-    }
-
-    history.replaceState(null, '', '#' + sectionId);
-    document.title = 'AutoSSH — ' + getSectionTitle(sectionId);
-  }
-
-  function getSectionTitle(sectionId) {
-    var titles = {
-      intro: 'Introduction',
-      install: 'Installation',
-      quickstart: 'Quick Start',
-      config: 'Configuration',
-      usage: 'Usage Guide',
-      architecture: 'Architecture',
-      security: 'Security',
-      troubleshooting: 'Troubleshooting',
-      faq: 'FAQ',
-      contributing: 'Contributing',
-      changelog: 'Changelog',
-    };
-    return titles[sectionId] || 'Documentation';
-  }
-
-  navLinks.forEach(function (link) {
-    link.addEventListener('click', function (e) {
-      e.preventDefault();
-      var sectionId = link.getAttribute('data-section');
-      if (sectionId) {
-        activateSection(sectionId);
+  fetch('/sidebar.html')
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      document.getElementById('sidebar-container').innerHTML = html;
+      highlightCurrentPage();
+    })
+    .catch(function () {
+      // fallback: embed sidebar directly if fetch fails (e.g. file://)
+      var sidebar = document.getElementById('sidebar-container');
+      if (sidebar && !sidebar.hasChildNodes()) {
+        sidebar.innerHTML = '<p style="padding:20px;color:#666;">Navigation unavailable</p>';
+      } else {
+        highlightCurrentPage();
       }
     });
-  });
 
-  function handleHash() {
-    var hash = window.location.hash.replace('#', '');
-    if (hash && document.getElementById('section-' + hash)) {
-      activateSection(hash);
-    } else {
-      activateSection('intro');
+  function getCurrentPage() {
+    var path = window.location.pathname.replace(/\/+$/, '');
+    var parts = path.split('/');
+    var last = parts[parts.length - 1];
+
+    if (!last || last === 'index' || last === 'index.html') {
+      return 'index';
     }
+    return last.replace(/\.html$/, '');
   }
 
-  window.addEventListener('hashchange', handleHash);
-
-  handleHash();
+  function highlightCurrentPage() {
+    var links = document.querySelectorAll('.nav-link');
+    links.forEach(function (link) {
+      var page = link.getAttribute('data-page');
+      if (page === currentPage) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  }
 })();

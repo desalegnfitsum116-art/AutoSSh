@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — FAQ</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>FAQ</h2>
+    </div>
+
+    <div class="faq-item">
+      <h4>Do I need root / sudo permissions?</h4>
+      <p>No. AutoSSH runs as a regular user and uses standard SSH keys.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Can it handle password-based auth?</h4>
+      <p>Not currently. SSH key authentication is preferred and more secure.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>What happens when my laptop goes to sleep?</h4>
+      <p>AutoSSH detects the connection drop, enters reconnection mode, and automatically reconnects when the network is available again using exponential backoff (1s → 2s → 4s → ... → 60s).</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Does it work with non-standard SSH ports?</h4>
+      <p>Yes. Set the port in Settings or directly in config.toml.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Is this a terminal emulator?</h4>
+      <p>No. AutoSSH establishes SSH sessions in the background. It does not provide a terminal UI or shell.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Can I use it with SSH jump hosts?</h4>
+      <p>Not yet. This is planned for a future release.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>How do I uninstall?</h4>
+      <p>If installed via .deb: <code>sudo apt remove auto-ssh</code>. Remove the config: <code>rm -rf ~/.config/auto-ssh</code>. Remove autostart: <code>rm ~/.config/autostart/auto-ssh.desktop</code>.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Does it work across the internet, not just LAN?</h4>
+      <p>Yes, as long as the remote host is reachable and the SSH port is open. Ensure your firewall and NAT allow the connection.</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Is there a headless / CLI version?</h4>
+      <p>Not yet. A terminal UI mode is on the roadmap.</p>
+    </div>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>

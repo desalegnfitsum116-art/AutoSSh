@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoSSH — Installation</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='32' fill='%232d2d2d'/%3E%3Ccircle cx='128' cy='100' r='40' fill='none' stroke='%2300ff88' stroke-width='6'/%3E%3Cpath d='M100 128 L128 156 L156 128' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M128 140 L128 200' fill='none' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='90' y1='180' x2='166' y2='180' stroke='%2300ff88' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='80' y1='200' x2='176' y2='200' stroke='%23555' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+
+  <main id="content">
+    <div class="page-header">
+      <h2>Installation</h2>
+    </div>
+
+    <h3>Linux</h3>
+
+    <h4>Debian / Ubuntu (.deb)</h4>
+    <pre><code>sudo dpkg -i auto-ssh_0.1.0_amd64.deb</code></pre>
+
+    <h4>AppImage (all distros)</h4>
+    <pre><code>chmod +x auto-ssh-x86_64.AppImage
+./auto-ssh-x86_64.AppImage</code></pre>
+
+    <h4>From source</h4>
+    <pre><code>git clone https://github.com/yourusername/autossh.git
+cd autossh
+cargo build --release
+strip target/release/auto-ssh
+./target/release/auto-ssh</code></pre>
+
+    <h3>System Dependencies</h3>
+    <pre><code>sudo apt install build-essential libssl-dev cmake</code></pre>
+    <p>The system tray uses a pure Rust StatusNotifierItem implementation — no additional indicator libraries required.</p>
+
+    <h3>Prerequisites</h3>
+    <table>
+      <tr><th>Prerequisite</th><th>Version</th></tr>
+      <tr><td>Rust</td><td>1.70+ (stable)</td></tr>
+      <tr><td>Cargo</td><td>Comes with Rust</td></tr>
+      <tr><td>CMake</td><td>3.0+ (for libssh2)</td></tr>
+      <tr><td>OpenSSL dev headers</td><td>1.1+</td></tr>
+    </table>
+  </main>
+
+  <script src="../script.js"></script>
+</body>
+</html>
