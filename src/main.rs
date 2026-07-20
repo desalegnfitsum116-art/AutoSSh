@@ -1,3 +1,5 @@
+mod config;
+
 use eframe::egui;
 use std::time::{Duration, SystemTime};
 
@@ -16,37 +18,25 @@ struct AutoSshApp {
     last_connection_text: String,
     show_settings: bool,
 
-    config_device_name: String,
-    config_remote_host: String,
-    config_username: String,
-    config_port: u16,
-    config_ssh_key_path: String,
-    config_poll_interval: u64,
-}
-
-impl Default for AutoSshApp {
-    fn default() -> Self {
-        Self {
-            local_status: DeviceStatus::Online,
-            remote_status: DeviceStatus::Offline,
-            auto_connect: true,
-            last_connection: None,
-            last_connection_text: String::from("Never"),
-            show_settings: false,
-
-            config_device_name: String::from("My Laptop"),
-            config_remote_host: String::from("192.168.1.100"),
-            config_username: String::from("user"),
-            config_port: 22,
-            config_ssh_key_path: String::from("~/.ssh/id_ed25519"),
-            config_poll_interval: 5,
-        }
-    }
+    cfg: config::Config,
+    save_result: Option<String>,
 }
 
 impl AutoSshApp {
     fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        Self::default()
+        let cfg = config::Config::load();
+        let auto_connect = cfg.auto_connect;
+
+        Self {
+            local_status: DeviceStatus::Online,
+            remote_status: DeviceStatus::Offline,
+            auto_connect,
+            last_connection: None,
+            last_connection_text: String::from("Never"),
+            show_settings: false,
+            cfg,
+            save_result: None,
+        }
     }
 }
 
@@ -137,6 +127,7 @@ impl AutoSshApp {
                         .clicked()
                     {
                         self.show_settings = true;
+                        self.save_result = None;
                     }
                 });
             });
@@ -155,38 +146,47 @@ impl AutoSshApp {
                 .striped(true)
                 .show(ui, |ui| {
                     ui.label("Device Name:");
-                    ui.text_edit_singleline(&mut self.config_device_name);
+                    ui.text_edit_singleline(&mut self.cfg.device_name);
                     ui.end_row();
 
                     ui.label("Remote Host:");
-                    ui.text_edit_singleline(&mut self.config_remote_host);
+                    ui.text_edit_singleline(&mut self.cfg.remote_host);
                     ui.end_row();
 
                     ui.label("Username:");
-                    ui.text_edit_singleline(&mut self.config_username);
+                    ui.text_edit_singleline(&mut self.cfg.username);
                     ui.end_row();
 
                     ui.label("SSH Port:");
-                    ui.add(egui::DragValue::new(&mut self.config_port).range(1..=65535));
+                    ui.add(egui::DragValue::new(&mut self.cfg.port).range(1..=65535));
                     ui.end_row();
 
                     ui.label("SSH Key Path:");
-                    ui.text_edit_singleline(&mut self.config_ssh_key_path);
+                    ui.text_edit_singleline(&mut self.cfg.ssh_key_path);
                     ui.end_row();
 
                     ui.label("Poll Interval (s):");
                     ui.add(
-                        egui::Slider::new(&mut self.config_poll_interval, 1..=60)
+                        egui::Slider::new(&mut self.cfg.poll_interval_seconds, 1..=60)
                             .integer(),
                     );
                     ui.end_row();
 
                     ui.label("Auto-Connect:");
-                    ui.checkbox(&mut self.auto_connect, "");
+                    ui.checkbox(&mut self.cfg.auto_connect, "");
                     ui.end_row();
                 });
 
-            ui.add_space(16.0);
+            ui.add_space(8.0);
+
+            if let Some(ref result) = self.save_result {
+                let (msg, color) = match result.as_str() {
+                    "ok" => ("Config saved.", egui::Color32::GREEN),
+                    _ => (result.as_str(), egui::Color32::RED),
+                };
+                ui.colored_label(color, msg);
+                ui.add_space(4.0);
+            }
 
             ui.horizontal(|ui| {
                 if ui
@@ -197,7 +197,17 @@ impl AutoSshApp {
                     )
                     .clicked()
                 {
-                    self.show_settings = false;
+                    self.auto_connect = self.cfg.auto_connect;
+                    match self.cfg.save() {
+                        Ok(()) => {
+                            self.save_result = Some(String::from("ok"));
+                            log::info!("Configuration saved successfully");
+                        }
+                        Err(e) => {
+                            self.save_result = Some(e);
+                            log::error!("Failed to save configuration");
+                        }
+                    }
                 }
                 if ui
                     .button(
