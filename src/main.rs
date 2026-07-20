@@ -1,3 +1,4 @@
+mod autostart;
 mod config;
 mod monitor;
 mod ssh;
@@ -14,6 +15,8 @@ struct AutoSshApp {
     last_connection: Option<SystemTime>,
     last_connection_text: String,
     show_settings: bool,
+    has_tray: bool,
+    show_requested: bool,
 
     cfg: config::Config,
     save_result: Option<String>,
@@ -41,6 +44,7 @@ impl AutoSshApp {
 
         let ssh_handle = Some(ssh::start_ssh_manager());
         let tray_handle = tray::start_tray();
+        let has_tray = tray_handle.is_some();
 
         Self {
             local_status: monitor::DeviceState::Online,
@@ -49,6 +53,8 @@ impl AutoSshApp {
             last_connection: None,
             last_connection_text: String::from("Never"),
             show_settings: false,
+            has_tray,
+            show_requested: false,
             cfg,
             save_result: None,
             monitor_handle,
@@ -64,6 +70,8 @@ impl eframe::App for AutoSshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_millis(500));
 
+        self.handle_close_request(ctx);
+        self.handle_show_request(ctx);
         self.poll_monitor();
         self.poll_ssh_events();
         self.poll_tray_actions();
@@ -74,6 +82,11 @@ impl eframe::App for AutoSshApp {
             && self.remote_status == monitor::DeviceState::SshReady
         {
             self.initiate_connection();
+        }
+
+        if self.show_requested {
+            self.show_requested = false;
+            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
         }
 
         if !self.show_settings {
@@ -96,6 +109,25 @@ impl Drop for AutoSshApp {
 }
 
 impl AutoSshApp {
+    fn handle_close_request(&self, ctx: &egui::Context) {
+        if !self.has_tray {
+            return;
+        }
+
+        let close_requested = ctx.input(|i| i.viewport().close_requested());
+        if close_requested {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
+        }
+    }
+
+    fn handle_show_request(&mut self, ctx: &egui::Context) {
+        if self.show_requested {
+            self.show_requested = false;
+            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
+        }
+    }
+
     fn poll_monitor(&mut self) {
         if let Some(ref handle) = self.monitor_handle {
             while let Ok(state) = handle.recv_state() {
@@ -140,7 +172,6 @@ impl AutoSshApp {
                         }
                         log::info!("SSH disconnected: {}", reason);
                     }
-
                 }
             }
         }
@@ -166,9 +197,8 @@ impl AutoSshApp {
                         }
                     }
                     tray::TrayAction::Show => {
-                        // Window is already visible
+                        self.show_requested = true;
                     }
-
                 }
             }
         }
@@ -328,6 +358,10 @@ impl AutoSshApp {
                     ui.label("Auto-Connect:");
                     ui.checkbox(&mut self.cfg.auto_connect, "");
                     ui.end_row();
+
+                    ui.label("Start on Boot:");
+                    ui.checkbox(&mut self.cfg.start_on_boot, "");
+                    ui.end_row();
                 });
 
             ui.add_space(8.0);
@@ -351,6 +385,7 @@ impl AutoSshApp {
                     .clicked()
                 {
                     self.auto_connect = self.cfg.auto_connect;
+                    let prev_start_on_boot = self.cfg.start_on_boot;
                     match self.cfg.save() {
                         Ok(()) => {
                             self.save_result = Some(String::from("ok"));
@@ -361,6 +396,17 @@ impl AutoSshApp {
                                 );
                             }
                             self.auto_connect_attempted = false;
+
+                            if self.cfg.start_on_boot && !prev_start_on_boot {
+                                if let Err(e) = autostart::enable() {
+                                    self.save_result = Some(format!("Autostart error: {}", e));
+                                }
+                            } else if !self.cfg.start_on_boot && prev_start_on_boot {
+                                if let Err(e) = autostart::disable() {
+                                    self.save_result = Some(format!("Autostart error: {}", e));
+                                }
+                            }
+
                             log::info!("Configuration saved successfully");
                         }
                         Err(e) => {
@@ -423,7 +469,7 @@ fn main() -> Result<(), eframe::Error> {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([480.0, 420.0])
+            .with_inner_size([480.0, 440.0])
             .with_min_inner_size([400.0, 350.0])
             .with_title("AutoSSH"),
         ..Default::default()

@@ -10,6 +10,7 @@ pub struct Config {
     pub port: u16,
     pub ssh_key_path: String,
     pub auto_connect: bool,
+    pub start_on_boot: bool,
     pub poll_interval_seconds: u64,
 }
 
@@ -22,6 +23,7 @@ impl Default for Config {
             port: 22,
             ssh_key_path: String::from("~/.ssh/id_ed25519"),
             auto_connect: true,
+            start_on_boot: false,
             poll_interval_seconds: 5,
         }
     }
